@@ -19,12 +19,8 @@ internal class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews()
             .AddJsonOptions(options =>
-            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
-                .AddRazorRuntimeCompilation(); ;
-
-        builder.Services.AddControllers().AddJsonOptions(options =>
-            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
-            .AddRazorRuntimeCompilation();
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+        //.AddRazorRuntimeCompilation();
 
         var tenantid = builder.Configuration["AzureAd:TenantId"];
 
