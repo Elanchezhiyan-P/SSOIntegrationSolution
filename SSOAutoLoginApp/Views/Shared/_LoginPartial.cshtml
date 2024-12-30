@@ -1,0 +1,23 @@
+﻿@using System.Security.Principal
+
+<ul class="navbar-nav">
+    <button id="theme-toggle">Toggle Theme</button>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <span class="navbar-text text-dark" style="margin-right: 6px !important; margin-left: 6px !important;">
+            @{
+                var userFullName = User.FindFirst("name")?.Value ?? User.Identity.Name;
+            }
+            Hello @userFullName!
+        </span>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignOut" style="border:solid 1px red; border-radius:16px; background-color:#eb2424; color: white !important;">Sign out</a>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignIn">Sign in</a>
+        </li>
+    }
+</ul>
