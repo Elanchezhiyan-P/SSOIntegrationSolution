@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SSOButtonApp.AppDbContext;
 using SSOButtonApp.Helpers.DI;
+using SSOButtonApp.Models;
 using System.Text.Json.Serialization;
 
 internal class Program
@@ -14,10 +18,17 @@ internal class Program
 
         builder.Configuration
             .AddJsonFile($"appsettings.{envName}.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables();
+        .AddEnvironmentVariables();
+
+        string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+        builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(connectionString)
+        .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+        .EnableDetailedErrors());
 
         // Add services to the container.
-        builder.Services.AddControllersWithViews()
+        builder.Services.AddControllers()
             .AddJsonOptions(options =>
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
         //.AddRazorRuntimeCompilation();
@@ -55,9 +66,22 @@ internal class Program
             options.SlidingExpiration = true;
         });
 
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.SignIn.RequireConfirmedAccount = false;
+            options.Password.RequiredLength = 6;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireDigit = true;
+            options.User.RequireUniqueEmail = true;
+        })
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
         builder.Services.AddSession(options =>
         {
-            options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
         });
@@ -101,7 +125,7 @@ internal class Program
 
         app.MapControllerRoute(
             name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
+            pattern: "{controller=Account}/{action=Login}")
             .WithStaticAssets();
 
         app.MapRazorPages();

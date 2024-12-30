@@ -26,7 +26,9 @@ namespace SSOButtonApp.Service.Repository
 
         public async Task<ApplicationUser> GetUserAsync(ClaimsPrincipal User)
         {
-            if(User == null) throw new ArgumentNullException("user");
+            if (User == null) throw new ArgumentNullException("user");
+            else if (!User.Identity.IsAuthenticated)
+                return null;
             else
             {
                 var email = (User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email || c.Type == "email")?.Value) ?? throw new ArgumentException("No user has been found");
@@ -93,6 +95,38 @@ namespace SSOButtonApp.Service.Repository
         public async Task SignOut()
         {
             await _signInManager.SignOutAsync();
+        }
+
+        public async Task<ExternalLoginInfo> GetExternalLoginInfoAsync()
+        {
+            return await _signInManager.GetExternalLoginInfoAsync();
+        }
+        
+        public async Task<SignInResult> ExternalLoginSignInAsync(string loginProvider, string providerKey, bool isPersistent)
+        {
+            return await _signInManager.ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor: true);
+        }
+
+        public async Task<IdentityResult> CreateUserExternally(ApplicationUser user)
+        {
+            try
+            {
+                return await _userManager.CreateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IdentityResult> AddLoginAsync(ApplicationUser user, UserLoginInfo info)
+        {
+            return await _userManager.AddLoginAsync(user, info);
+        }
+        
+        public AuthenticationProperties ConfigureExternalAuthenticationProperties(string redirectUrl)
+        {
+            return _signInManager.ConfigureExternalAuthenticationProperties("Microsoft", redirectUrl);
         }
     }
 }
